@@ -7,7 +7,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const naira=n=>'₦'+Number(n||0).toLocaleString();
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3500)}
 function modal(html){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="sheet"><button class="x" aria-label="Close">×</button>${html}</div>`;m.onclick=e=>{if(e.target===m||e.target.className==='x')m.remove()};document.body.append(m);return m}
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('New version ready. Refresh the page to update.')})})}).catch(()=>{}));
 async function profile(){const{data:{session}}=await sb.auth.getSession();if(!session)return null;const{data}=await sb.from('profiles').select('*').eq('id',session.user.id).single();return data}
 function logout(){sb.auth.signOut().then(()=>location.reload())}
 function loginForm(el,done,signup=false){
@@ -34,11 +34,16 @@ async function bell(p){
   await sb.from('notifications').update({read:true}).eq('user_id',p.id).eq('read',false);load()};
  sb.channel('n'+p.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+p.id},async e=>{
   toast(e.new.title);load();
-  if('Notification' in window&&Notification.permission==='granted'){const r=await navigator.serviceWorker.ready;r.showNotification(e.new.title,{body:e.new.body,icon:'icon.svg',badge:'icon.svg'})}}).subscribe()}
-/* Install button */
+  if('Notification' in window&&Notification.permission==='granted'){const r=await navigator.serviceWorker.ready;r.showNotification(e.new.title,{body:e.new.body,icon:'icon-192.png',badge:'icon-192.png'})}}).subscribe()}
+/* Install App button + splash */
 let _ip;
-if(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone)){
+const _standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const _ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+if(_standalone){const sp=document.createElement('div');sp.id='splash';sp.innerHTML='<div class="logo">BST</div><p>BIN SAEED TEXTILE</p>';document.body.append(sp);setTimeout(()=>sp.classList.add('hide'),700);setTimeout(()=>sp.remove(),1200)}
+else{
  addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e});
- const b=document.createElement('button');b.className='btn inst';b.textContent='⬇ Install app';
- b.onclick=async()=>{if(_ip){_ip.prompt();await _ip.userChoice;_ip=null}else modal('<h3>Install BST</h3><p><b>Android:</b> open this page in Chrome (not inside WhatsApp or Facebook), tap the ⋮ menu, then "Install app" or "Add to Home screen".</p><p><b>iPhone:</b> open in Safari, tap Share, then "Add to Home Screen".</p><p class=muted>If you do not see it, refresh the page once and try again.</p>')};
+ const b=document.createElement('button');b.className='btn inst';b.textContent='⬇ Install App';
+ b.onclick=async()=>{
+  if(_ip){_ip.prompt();await _ip.userChoice;_ip=null;return}
+  modal(_ios?'<h3>Install on iPhone</h3><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>':'<h3>Install BIN SAEED</h3><p>Open this page in <b>Chrome</b> (not inside WhatsApp or Facebook), tap the <b>⋮</b> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>If you do not see it, refresh once and try again.</p>')};
  addEventListener('appinstalled',()=>b.remove());document.body.append(b)}
