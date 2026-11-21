@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><title>BST Admin</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
+<header><h1>BST Admin</h1><span id="bell"></span><button onclick="logout()">⎋</button></header><div id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<script src="config-and-app.js"></script>
+<script>
+gate(['admin'],p=>{let tab='Vendors';const T=['Vendors','Users','Accounts','Broadcast'];
+ $('#tabs').innerHTML=T.map(t=>`<button data-t="${t}">${t}</button>`).join('');
+ $('#tabs').onclick=e=>{if(e.target.dataset.t){tab=e.target.dataset.t;draw()}};
+ async function draw(){$('#tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const[us,st,pr,aa,od]=(await Promise.all([sb.from('profiles').select('*').order('created_at',{ascending:false}),sb.from('vendor_settings').select('*'),sb.from('products').select('vendor_id'),sb.from('admin_accounts').select('*'),sb.from('orders').select('vendor_id,total')])).map(r=>r.data),app=$('#app');
+  if(tab==='Vendors')app.innerHTML=us.filter(u=>u.role==='vendor').map(v=>{const s=st.find(x=>x.vendor_id===v.id)||{upload_limit:70,locked:false},n=pr.filter(x=>x.vendor_id===v.id).length,sales=od.filter(x=>x.vendor_id===v.id).reduce((a,b)=>a+ +b.total,0);
+   return `<div class="card"><div class="row"><b>${esc(v.name)}</b><span class="tag">${s.locked?'Locked':'Active'}</span></div><small>Orders value ${naira(sales)}</small><div class="bar"><i style="width:${Math.min(100,n/s.upload_limit*100)}%"></i></div><p>${n} / ${s.upload_limit} products</p><div class="row"><input type="number" style="width:90px" value="${s.upload_limit}" id="l${v.id}"><button class="btn s" data-lim="${v.id}">Set limit & unlock</button><button class="btn s g" data-lock="${v.id}">Lock</button></div></div>`}).join('')||'<p class=muted>No vendors yet. Promote a user in the Users tab.</p>';
+  if(tab==='Users')app.innerHTML=us.map(u=>`<div class="card row"><span>${esc(u.name||'-')}<br><small>${esc(u.phone||'')}</small></span><select data-r="${u.id}">${['customer','vendor','admin'].map(r=>`<option ${r===u.role?'selected':''}>${r}</option>`).join('')}</select></div>`).join('');
+  if(tab==='Accounts')app.innerHTML=`<p class=muted>Vendors see these when they need to pay for more upload space.</p>${aa.map(a=>`<div class="card row"><span>${esc(a.bank)} · <b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</span><button class="btn s g" data-ad="${a.id}">Remove</button></div>`).join('')}<form class="card" id="af"><input name=bank placeholder="Bank" required><input name=acct_no placeholder="Account number" required><input name=acct_name placeholder="Account name" required><button class=btn>Add account</button></form>`;
+  if(tab==='Broadcast')app.innerHTML='<form class="card" id="bf"><input name=t placeholder="Title" required><textarea name=b placeholder="Message to everyone" required></textarea><button class=btn>Send to all users</button></form>';
+  const af=$('#af');if(af)af.onsubmit=async e=>{e.preventDefault();await sb.from('admin_accounts').insert(Object.fromEntries(new FormData(af)));draw()};
+  const bf=$('#bf');if(bf)bf.onsubmit=async e=>{e.preventDefault();const r=await sb.rpc('broadcast',Object.fromEntries(new FormData(bf)));toast(r.error?r.error.message:'Sent');bf.reset()}}
+ $('#app').onclick=async e=>{const d=e.target.dataset;let r;
+  if(d.lim)r=await sb.from('vendor_settings').upsert({vendor_id:d.lim,upload_limit:+$('#l'+d.lim).value,locked:false});
+  else if(d.lock)r=await sb.from('vendor_settings').upsert({vendor_id:d.lock,locked:true});
+  else if(d.ad)r=await sb.from('admin_accounts').delete().eq('id',d.ad);else return;
+  if(r.error)toast(r.error.message);draw()};
+ $('#app').onchange=async e=>{if(e.target.dataset.r){const r=await sb.from('profiles').update({role:e.target.value}).eq('id',e.target.dataset.r);toast(r.error?r.error.message:'Role updated')}};
+ draw()});
+</script></body></html>

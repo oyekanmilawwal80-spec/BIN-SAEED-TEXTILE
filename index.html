@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head><title>BIN SAEED TEXTILE</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
+<header><h1>BST</h1><input id="q" placeholder="Search fabrics, wears, lace…" type="search"><span id="bell"></span><button id="cartb">🛒<b class="cb" id="cc">0</b></button><button id="me">👤</button></header>
+<main><div class="chips" id="chips"></div><div class="grid" id="grid"></div><p id="empty" class="muted" hidden>No products found.</p></main>
+<div id="app" hidden></div>
+<script src="config-and-app.js"></script>
+<script>
+let P=[],cat='All',cart=JSON.parse(localStorage.getItem('bst_cart')||'{}'),user=null;
+const save=()=>{localStorage.setItem('bst_cart',JSON.stringify(cart));$('#cc').textContent=Object.values(cart).reduce((a,b)=>a+b.q,0)};
+async function load(){const{data}=await sb.from('products').select('*').eq('active',true).gt('stock',0).order('created_at',{ascending:false});P=data||[];
+ const cats=['All',...new Set(P.map(p=>p.category).filter(Boolean))];$('#chips').innerHTML=cats.map(c=>`<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');draw()}
+function draw(){const q=$('#q').value.toLowerCase(),l=P.filter(p=>(cat==='All'||p.category===cat)&&p.name.toLowerCase().includes(q));
+ $('#empty').hidden=!!l.length;$('#grid').innerHTML=l.map(p=>`<div class="p"><img loading="lazy" src="${esc(p.image_url||'icon.svg')}" alt=""><div><span>${esc(p.name)}</span><span class="pr">${naira(p.price)}</span><small>${p.stock} left</small><button class="btn s" data-add="${p.id}">Add to cart</button></div></div>`).join('')}
+$('#chips').onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;load()}};$('#q').oninput=draw;
+$('#grid').onclick=e=>{const id=e.target.dataset.add;if(!id)return;const p=P.find(x=>x.id===id);cart[id]=cart[id]||{id,name:p.name,price:p.price,vendor_id:p.vendor_id,q:0};if(cart[id].q<p.stock)cart[id].q++;save();toast('Added to cart')};
+$('#cartb').onclick=openCart;
+$('#me').onclick=async()=>{user=await profile();if(!user)return modal('<div id=lf></div>').querySelector('#lf').append(Object.assign(document.createElement('div'),{id:'lg'})),loginForm($('#lg'),()=>location.reload());
+ const my=await sb.from('orders').select('*').eq('customer_id',user.id).order('created_at',{ascending:false});
+ modal(`<h3>Hi ${esc(user.name||'there')}</h3>${(my.data||[]).map(o=>`<div class="note"><div class="row"><b>${naira(o.total)}</b><span class="tag ${o.status}">${o.status.replace('_',' ')}</span></div><small>${new Date(o.created_at).toLocaleString()}</small></div>`).join('')||'<p class=muted>No orders yet.</p>'}<button class="btn g" onclick="logout()">Log out</button>`);bell(user)};
+function openCart(){const items=Object.values(cart),total=items.reduce((a,b)=>a+b.price*b.q,0);
+ const m=modal(`<h3>Your cart</h3>${items.map(i=>`<div class="row note"><span>${esc(i.name)}<br><small>${naira(i.price)}</small></span><span><button class="btn g s" data-d="${i.id}">−</button> ${i.q} <button class="btn g s" data-u="${i.id}">+</button></span></div>`).join('')||'<p class=muted>Cart is empty.</p>'}<div class="row"><b>Total ${naira(total)}</b><button class="btn" id="co" ${items.length?'':'disabled'}>Checkout</button></div>`);
+ m.onclick=e=>{const d=e.target.dataset;if(e.target===m||e.target.className==='x')return m.remove();
+  if(d.d){if(--cart[d.d].q<1)delete cart[d.d]}else if(d.u){cart[d.u].q++}else if(e.target.id==='co'){m.remove();return checkout(total)}else return;save();m.remove();openCart()}}
+async function checkout(total){user=await profile();
+ if(!user){const m=modal('<div id=lg></div>');return loginForm(m.querySelector('#lg'),()=>{m.remove();checkout(total)})}
+ const{data:acc}=await sb.from('accounts').select('bank,acct_no,acct_name,vendor_id').in('vendor_id',[...new Set(Object.values(cart).map(i=>i.vendor_id))]);
+ const m=modal(`<h3>Pay ${naira(total)}</h3><p class=muted>Transfer the exact amount to any one account below, then tap "I have paid".</p>${(acc||[]).map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')||'<p class=err>No payment account is available yet. Please try later.</p>'}<textarea id="ad" placeholder="Delivery address & phone" required></textarea><input id="rf" placeholder="Transfer reference / sender name"><button class="btn" id="pd" ${acc&&acc.length?'':'disabled'}>I have paid</button>`);
+ m.querySelector('#pd').onclick=async()=>{const address=m.querySelector('#ad').value.trim();if(!address)return toast('Enter your delivery address');
+  const by={};Object.values(cart).forEach(i=>(by[i.vendor_id]=by[i.vendor_id]||[]).push(i));
+  const rows=Object.entries(by).map(([v,it])=>({customer_id:user.id,customer_name:user.name,vendor_id:v,items:it,total:it.reduce((a,b)=>a+b.price*b.q,0),reference:m.querySelector('#rf').value,address,status:'paid_pending'}));
+  const{error}=await sb.from('orders').insert(rows);if(error)return toast(error.message);
+  cart={};save();m.remove();toast('Payment submitted. The seller has been notified.')}}
+save();load();(async()=>{user=await profile();if(user)bell(user)})();
+</script></body></html>

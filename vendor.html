@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><title>BST Vendor</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
+<header><h1>BST Vendor</h1><span id="bell"></span><button onclick="logout()">⎋</button></header><div id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<script src="config-and-app.js"></script>
+<script>
+gate(['vendor'],p=>{let tab='Orders';const T=['Orders','Products','Accounts','Plan'];
+ $('#tabs').innerHTML=T.map(t=>`<button data-t="${t}">${t}</button>`).join('');
+ $('#tabs').onclick=e=>{if(e.target.dataset.t){tab=e.target.dataset.t;draw()}};
+ async function draw(){$('#tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const[s,pr,ac,o,aa]=(await Promise.all([sb.from('vendor_settings').select('*').eq('vendor_id',p.id).maybeSingle(),sb.from('products').select('*').eq('vendor_id',p.id).order('created_at',{ascending:false}),sb.from('accounts').select('*').eq('vendor_id',p.id),sb.from('orders').select('*').eq('vendor_id',p.id).order('created_at',{ascending:false}),sb.from('admin_accounts').select('*')])).map(r=>r.data);
+  const lim=s?.upload_limit??70,used=pr.length,locked=!!s?.locked||used>=lim,app=$('#app');
+  if(tab==='Orders')app.innerHTML=(o.map(x=>`<div class="card"><div class="row"><b>${naira(x.total)}</b><span class="tag ${x.status}">${x.status.replace('_',' ')}</span></div><p>${esc(x.customer_name)} — ${esc(x.address)}</p><small>Ref: ${esc(x.reference||'-')} · ${new Date(x.created_at).toLocaleString()}</small><p>${x.items.map(i=>esc(i.name)+' ×'+i.q).join(', ')}</p><div class="row">${[['confirmed','Confirm payment'],['shipped','Mark shipped'],['delivered','Delivered']].map(([k,l])=>`<button class="btn s g" data-s="${k}" data-id="${x.id}">${l}</button>`).join('')}</div></div>`).join('')||'<p class=muted>No orders yet.</p>');
+  if(tab==='Products')app.innerHTML=`<div class="card"><div class="row"><b>${used} / ${lim} products</b>${locked?'<span class="tag">Locked</span>':''}</div><div class="bar"><i style="width:${Math.min(100,used/lim*100)}%"></i></div></div>${locked?'<div class="warn">Upload limit reached. You can still edit or delete products. Open the Plan tab to pay and unlock more.</div>':`<form class="card" id="pf"><input name=name placeholder="Product name" required><input name=price type=number min=0 placeholder="Price (₦)" required><input name=stock type=number min=0 placeholder="Stock" required><input name=category placeholder="Category (e.g. Lace, Ankara)"><textarea name=description placeholder="Description"></textarea><input name=img type=file accept="image/*"><button class=btn>Upload product</button></form>`}${pr.map(x=>`<div class="card row"><span>${esc(x.name)}<br><small>${naira(x.price)} · ${x.stock} in stock</small></span><span><button class="btn s g" data-e="${x.id}">Edit</button> <button class="btn s g" data-x="${x.id}">Delete</button></span></div>`).join('')}`;
+  if(tab==='Accounts')app.innerHTML=`<p class=muted>Customers see these accounts at checkout.</p>${ac.map(a=>`<div class="card row"><span>${esc(a.bank)} · <b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</span><button class="btn s g" data-ad="${a.id}">Remove</button></div>`).join('')}<form class="card" id="af2"><input name=bank placeholder="Bank" required><input name=acct_no placeholder="Account number" required><input name=acct_name placeholder="Account name" required><button class=btn>Add account</button></form>`;
+  if(tab==='Plan')app.innerHTML=`<div class="card"><b>${used} / ${lim} products used</b><div class="bar"><i style="width:${Math.min(100,used/lim*100)}%"></i></div></div>${aa.length?'<p>Pay the admin to raise your limit, then tap the button below.</p>':'<p class=muted>The admin has not added payment details yet.</p>'}${aa.map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')}<button class="btn" data-a="paid" ${aa.length?'':'disabled'}>I have paid the admin</button>`;
+  const pf=$('#pf');if(pf)pf.onsubmit=async e=>{e.preventDefault();const f=new FormData(pf),file=f.get('img');let image_url=null;
+   if(file&&file.size){const path=p.id+'/'+Date.now()+'-'+file.name.replace(/[^\w.]/g,'_');const u=await sb.storage.from('products').upload(path,file);if(u.error)return toast(u.error.message);image_url=sb.storage.from('products').getPublicUrl(path).data.publicUrl}
+   const{error}=await sb.from('products').insert({vendor_id:p.id,name:f.get('name'),price:+f.get('price'),stock:+f.get('stock'),category:f.get('category'),description:f.get('description'),image_url});
+   if(error)toast(error.message.includes('UPLOAD_LIMIT')?'Upload limit reached. Pay the admin to unlock.':error.message);else toast('Product uploaded');draw()};
+  const af=$('#af2');if(af)af.onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(af));await sb.from('accounts').insert({...f,vendor_id:p.id});draw()}}
+ $('#app').onclick=async e=>{const d=e.target.dataset;let r;
+  if(d.s)r=await sb.from('orders').update({status:d.s}).eq('id',d.id);
+  else if(d.x&&confirm('Delete this product?'))r=await sb.from('products').delete().eq('id',d.x);
+  else if(d.ad)r=await sb.from('accounts').delete().eq('id',d.ad);
+  else if(d.e){const price=prompt('New price (₦)');const stock=prompt('New stock');if(price===null||stock===null)return;r=await sb.from('products').update({price:+price,stock:+stock}).eq('id',d.e)}
+  else if(d.a){r=await sb.rpc('notify_admins',{t:'Vendor payment',b:p.name+' says they have paid for more upload space.'});if(!r.error)toast('Admin notified')}
+  else return;if(r.error)toast(r.error.message);draw()};
+ draw()});
+</script></body></html>
