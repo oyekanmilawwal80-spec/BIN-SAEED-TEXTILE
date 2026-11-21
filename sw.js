@@ -1,5 +1,5 @@
 /* BIN SAEED TEXTILE service worker. Bump VERSION on every release. */
-const VERSION='v5',CACHE='bst-static-'+VERSION;
+const VERSION='v6',CACHE='bst-static-'+VERSION;
 const ASSETS=['app.css','config-and-app.js','manifest.json','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-maskable-512.png','offline.html'];
 self.addEventListener('install',e=>{
  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})))));
@@ -12,11 +12,9 @@ self.addEventListener('fetch',e=>{
  if(r.method!=='GET'||u.origin!==location.origin)return;
  // Pages: always fresh from the network; show offline page if there is no connection. Pages are never stored.
  if(r.mode==='navigate'){e.respondWith(fetch(r).catch(()=>caches.match('offline.html')));return}
- // Static files: serve cached copy fast, refresh it in the background.
+ // Static files: always try the network first so new releases show immediately; fall back to the saved copy offline.
  if(ASSETS.some(a=>u.pathname.endsWith('/'+a))){
-  e.respondWith(caches.open(CACHE).then(c=>c.match(r).then(hit=>{
-   const net=fetch(r).then(res=>{if(res.ok)c.put(r,res.clone());return res}).catch(()=>hit);
-   return hit||net})))}
+  e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(CACHE).then(c=>c.put(r,cp))}return res}).catch(()=>caches.match(r)))}
 });
 self.addEventListener('push',e=>{const d=e.data?e.data.json():{title:'BIN SAEED TEXTILE',body:''};
  e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png'}))});

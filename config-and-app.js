@@ -42,8 +42,15 @@ const _ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform===
 if(_standalone){const sp=document.createElement('div');sp.id='splash';sp.innerHTML='<div class="logo">BST</div><p>BIN SAEED TEXTILE</p>';document.body.append(sp);setTimeout(()=>sp.classList.add('hide'),700);setTimeout(()=>sp.remove(),1200)}
 else{
  addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e});
+ const ua=navigator.userAgent,android=/android/i.test(ua),
+  wrong=android&&(/FBAN|FBAV|Instagram|WhatsApp|Telegram|Snapchat|TikTok|Line\/|; wv\)/i.test(ua)||!/Chrome\//.test(ua)||/OPR|UCBrowser|SamsungBrowser|MiuiBrowser|EdgA/i.test(ua));
  const b=document.createElement('button');b.className='btn inst';b.textContent='⬇ Install App';
  b.onclick=async()=>{
+  if(!_ip&&!_ios&&!wrong)await new Promise(r=>setTimeout(r,1500));
   if(_ip){_ip.prompt();await _ip.userChoice;_ip=null;return}
-  modal(_ios?'<h3>Install on iPhone</h3><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>':'<h3>Install BIN SAEED</h3><p>Open this page in <b>Chrome</b> (not inside WhatsApp or Facebook), tap the <b>⋮</b> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>If you do not see it, refresh once and try again.</p>')};
+  const link=location.origin+'/';
+  if(_ios)return modal('<h3>Install on iPhone</h3><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>');
+  if(wrong){const m=modal('<h3>Open in Chrome to install</h3><p>This page is open inside another app or browser, which cannot install apps.</p><a class="btn" style="text-align:center;text-decoration:none" href="intent://'+location.host+'/#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a><button class="btn g" id="cp">Copy link</button><p class=muted>Or copy the link and paste it into Chrome yourself.</p>');
+   m.querySelector('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(link);toast('Link copied. Paste it in Chrome.')};return}
+  modal('<h3>Install BIN SAEED</h3><p>Tap the <b>⋮</b> menu in Chrome, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>Already installed? Look for BIN SAEED in your app list. Chrome hides Install once the app is on your phone. If you removed it a moment ago, close Chrome fully, open this page again and tap Install.</p>')};
  addEventListener('appinstalled',()=>b.remove());document.body.append(b)}
