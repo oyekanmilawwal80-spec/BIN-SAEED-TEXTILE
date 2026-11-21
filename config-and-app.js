@@ -51,7 +51,7 @@ if(_standalone){
   if(_ios)return modal('<h3>Install on iPhone</h3><p>Apple does not allow one-tap install buttons. It takes 3 taps:</p><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>');
   if(wrong){const m=modal('<h3>Open in Chrome to install</h3><p>This page is open inside another app or browser, which cannot install apps.</p><a class="btn" style="text-align:center;text-decoration:none" href="intent://'+location.host+'/#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a><button class="btn g" id="cp">Copy link</button>');
    m.querySelector('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(location.origin+'/');toast('Link copied. Paste it in Chrome.')};return}
-  modal('<h3>Install BIN SAEED TEXTILE</h3><p>Your browser did not offer the install window yet. Tap the <b>⋮</b> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>If the app is already on your device, open it from your home screen or Start menu.</p>');
+  modal('<h3>Install BIN SAEED TEXTILE</h3><p>Your browser did not offer the install window yet. Tap the <b>⋮</b> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>If the app is already on your device, open it from your home screen or Start menu.</p><p class=muted style="font-size:12px">Status: '+((ua.match(/(Chrome|Edg|OPR|SamsungBrowser|UCBrowser)\/[\d.]+/)||['unknown browser'])[0])+' · service worker: '+(navigator.serviceWorker&&navigator.serviceWorker.controller?'active':'not active')+' · install event: not received</p>');
  };
  const doInstall=async()=>{
   if(!_ip&&!_ios&&!wrong)await new Promise(r=>setTimeout(r,1200));
