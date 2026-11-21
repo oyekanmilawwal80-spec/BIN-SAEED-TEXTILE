@@ -35,3 +35,10 @@ async function bell(p){
  sb.channel('n'+p.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+p.id},async e=>{
   toast(e.new.title);load();
   if('Notification' in window&&Notification.permission==='granted'){const r=await navigator.serviceWorker.ready;r.showNotification(e.new.title,{body:e.new.body,icon:'icon.svg',badge:'icon.svg'})}}).subscribe()}
+/* Install button */
+let _ip;
+if(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone)){
+ addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e});
+ const b=document.createElement('button');b.className='btn inst';b.textContent='⬇ Install app';
+ b.onclick=async()=>{if(_ip){_ip.prompt();await _ip.userChoice;_ip=null}else modal('<h3>Install BST</h3><p><b>Android:</b> open this page in Chrome (not inside WhatsApp or Facebook), tap the ⋮ menu, then "Install app" or "Add to Home screen".</p><p><b>iPhone:</b> open in Safari, tap Share, then "Add to Home Screen".</p><p class=muted>If you do not see it, refresh the page once and try again.</p>')};
+ addEventListener('appinstalled',()=>b.remove());document.body.append(b)}

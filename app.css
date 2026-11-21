@@ -20,3 +20,4 @@ input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);borde
 .bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--o)}
 .tag{font-size:12px;padding:2px 8px;border-radius:10px;background:#eee}.tag.paid_pending,.tag.pending{background:#ffe9c7}.tag.confirmed,.tag.delivered{background:#d3f2e1}.tag.shipped{background:#d8e8ff}
 .acct{border:1px dashed var(--o);border-radius:8px;padding:10px}.acct b{font-size:18px;letter-spacing:1px}
+.inst{position:fixed;right:12px;bottom:76px;z-index:9;box-shadow:0 4px 14px #0004}
