@@ -35,22 +35,45 @@ async function bell(p){
  sb.channel('n'+p.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+p.id},async e=>{
   toast(e.new.title);load();
   if('Notification' in window&&Notification.permission==='granted'){const r=await navigator.serviceWorker.ready;r.showNotification(e.new.title,{body:e.new.body,icon:'icon-192.png',badge:'icon-192.png'})}}).subscribe()}
-/* Install App button + splash */
+/* Install App widget + splash */
 let _ip;
 const _standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const _ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-if(_standalone){const sp=document.createElement('div');sp.id='splash';sp.innerHTML='<div class="logo">BST</div><p>BIN SAEED TEXTILE</p>';document.body.append(sp);setTimeout(()=>sp.classList.add('hide'),700);setTimeout(()=>sp.remove(),1200)}
-else{
- addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e});
- const ua=navigator.userAgent,android=/android/i.test(ua),
-  wrong=android&&(/FBAN|FBAV|Instagram|WhatsApp|Telegram|Snapchat|TikTok|Line\/|; wv\)/i.test(ua)||!/Chrome\//.test(ua)||/OPR|UCBrowser|SamsungBrowser|MiuiBrowser|EdgA/i.test(ua));
- const b=document.createElement('button');b.className='btn inst';b.textContent='⬇ Install App';
- b.onclick=async()=>{
-  if(!_ip&&!_ios&&!wrong)await new Promise(r=>setTimeout(r,1500));
-  if(_ip){_ip.prompt();await _ip.userChoice;_ip=null;return}
-  const link=location.origin+'/';
-  if(_ios)return modal('<h3>Install on iPhone</h3><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>');
-  if(wrong){const m=modal('<h3>Open in Chrome to install</h3><p>This page is open inside another app or browser, which cannot install apps.</p><a class="btn" style="text-align:center;text-decoration:none" href="intent://'+location.host+'/#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a><button class="btn g" id="cp">Copy link</button><p class=muted>Or copy the link and paste it into Chrome yourself.</p>');
-   m.querySelector('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(link);toast('Link copied. Paste it in Chrome.')};return}
-  modal('<h3>Install BIN SAEED</h3><p>Tap the <b>⋮</b> menu in Chrome, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>Already installed? Look for BIN SAEED in your app list. Chrome hides Install once the app is on your phone. If you removed it a moment ago, close Chrome fully, open this page again and tap Install.</p>')};
- addEventListener('appinstalled',()=>b.remove());document.body.append(b)}
+if(_standalone){
+ const sp=document.createElement('div');sp.id='splash';sp.innerHTML='<img src="icon-192.png" alt=""><p>BIN SAEED TEXTILE</p>';document.body.append(sp);
+ setTimeout(()=>sp.classList.add('hide'),700);setTimeout(()=>sp.remove(),1200);
+}else{
+ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+ const ua=navigator.userAgent,android=/android/i.test(ua);
+ const wrong=android&&(/FBAN|FBAV|Instagram|WhatsApp|Telegram|Snapchat|TikTok|Line\/|; wv\)/i.test(ua)||!/Chrome\//.test(ua)||/OPR|UCBrowser|SamsungBrowser|MiuiBrowser|EdgA/i.test(ua));
+ let card=null,pill=null;
+ const guide=()=>{
+  if(_ios)return modal('<h3>Install on iPhone</h3><p>Apple does not allow one-tap install buttons. It takes 3 taps:</p><p>1. Open this page in <b>Safari</b>.</p><p>2. Tap the <b>Share</b> button (square with an arrow).</p><p>3. Tap <b>Add to Home Screen</b>, then <b>Add</b>.</p>');
+  if(wrong){const m=modal('<h3>Open in Chrome to install</h3><p>This page is open inside another app or browser, which cannot install apps.</p><a class="btn" style="text-align:center;text-decoration:none" href="intent://'+location.host+'/#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a><button class="btn g" id="cp">Copy link</button>');
+   m.querySelector('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(location.origin+'/');toast('Link copied. Paste it in Chrome.')};return}
+  modal('<h3>Install BIN SAEED TEXTILE</h3><p>Your browser did not offer the install window yet. Tap the <b>⋮</b> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p><p class=muted>If the app is already on your device, open it from your home screen or Start menu.</p>');
+ };
+ const doInstall=async()=>{
+  if(!_ip&&!_ios&&!wrong)await new Promise(r=>setTimeout(r,1200));
+  if(_ip){_ip.prompt();const c=await _ip.userChoice;_ip=null;if(c.outcome==='accepted')done();else toast('Installation cancelled');return}
+  guide()};
+ const done=()=>{
+  ls.set('bst_installed','1');ls.del('bst_dismissed');
+  if(pill){pill.remove();pill=null}
+  if(card){card.classList.add('ok');card.querySelector('.go').textContent='✓ APP INSTALLED';card.querySelector('.go').disabled=true;card.querySelector('p').textContent='BIN SAEED TEXTILE is now on your device. Open it from your home screen or Start menu.';setTimeout(()=>{card&&card.remove();card=null},6000)}};
+ const showPill=()=>{if(pill||card)return;pill=document.createElement('button');pill.className='btn inst';pill.textContent='⬇ Install App';pill.onclick=doInstall;document.body.append(pill)};
+ const showCard=()=>{
+  if(card)return;if(pill){pill.remove();pill=null}
+  card=document.createElement('div');card.className='ia';
+  card.innerHTML='<img src="icon-192.png" alt="BST"><div class="it"><b>BIN SAEED TEXTILE</b><p>Install our app for a faster and better shopping experience.</p></div><button class="btn go">INSTALL APP</button><button class="ix" aria-label="Close">×</button>';
+  card.querySelector('.go').onclick=doInstall;
+  card.querySelector('.ix').onclick=()=>{card.remove();card=null;ls.set('bst_dismissed',String(Date.now()));showPill()};
+  document.body.append(card)};
+ const start=()=>{
+  if(ls.get('bst_installed')==='1')return;
+  const d=+ls.get('bst_dismissed')||0;
+  if(d&&Date.now()-d<7*864e5)showPill();else showCard()};
+ addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e;ls.del('bst_installed');if(!card&&!pill)start()});
+ addEventListener('appinstalled',done);
+ setTimeout(start,900);
+}

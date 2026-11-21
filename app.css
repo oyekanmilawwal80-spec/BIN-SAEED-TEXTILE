@@ -21,4 +21,11 @@ input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);borde
 .tag{font-size:12px;padding:2px 8px;border-radius:10px;background:#eee}.tag.paid_pending,.tag.pending{background:#ffe9c7}.tag.confirmed,.tag.delivered{background:#d3f2e1}.tag.shipped{background:#d8e8ff}
 .acct{border:1px dashed var(--o);border-radius:8px;padding:10px}.acct b{font-size:18px;letter-spacing:1px}
 .inst{position:fixed;right:12px;bottom:76px;z-index:9;box-shadow:0 4px 14px #0004}
-#splash{position:fixed;inset:0;z-index:99;background:#f6f2ec;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .45s}#splash.hide{opacity:0}#splash .logo{width:96px;height:96px;border-radius:22px;background:#fb5b1f;color:#fff;display:grid;place-items:center;font:900 32px Arial,sans-serif}#splash p{font-weight:700;letter-spacing:1px}
+#splash{position:fixed;inset:0;z-index:99;background:#f6f2ec;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .45s}#splash.hide{opacity:0}#splash img{width:96px;height:96px;border-radius:22px}#splash p{font-weight:700;letter-spacing:1px}
+.ia{position:fixed;left:12px;right:12px;bottom:76px;max-width:440px;margin:auto;z-index:40;background:#fff;border-radius:16px;padding:14px 38px 14px 14px;display:grid;grid-template-columns:56px 1fr;gap:6px 12px;align-items:center;box-shadow:0 10px 34px #0004;border-top:4px solid var(--o);animation:iaUp .4s}
+@media(min-width:700px){.ia{left:auto;right:18px;bottom:18px;margin:0}}
+.ia img{width:56px;height:56px;border-radius:13px}.ia .it b{font-size:16px}.ia .it p{font-size:13px;color:var(--mut);line-height:1.35;margin-top:2px}
+.ia .go{grid-column:1/-1;width:100%;padding:12px;font-size:15px;letter-spacing:.8px}.ia.ok{border-top-color:var(--ok)}.ia.ok .go{background:var(--ok)}
+.ix{position:absolute;top:4px;right:8px;background:none;border:0;font-size:26px;color:var(--mut);cursor:pointer}
+@keyframes iaUp{from{transform:translateY(30px);opacity:0}}
+.inst{position:fixed;right:12px;bottom:76px;z-index:9;box-shadow:0 4px 14px #0004}
