@@ -1,5 +1,5 @@
 /* BIN SAEED TEXTILE service worker. Bump VERSION on every release. */
-const VERSION='v4',CACHE='bst-static-'+VERSION;
+const VERSION='v5',CACHE='bst-static-'+VERSION;
 const ASSETS=['app.css','config-and-app.js','manifest.json','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-maskable-512.png','offline.html'];
 self.addEventListener('install',e=>{
  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})))));

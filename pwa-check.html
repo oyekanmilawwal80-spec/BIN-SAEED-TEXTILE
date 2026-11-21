@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PWA Check · BIN SAEED TEXTILE</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#fb5b1f">
+<style>body{font:15px/1.5 system-ui,sans-serif;background:#f6f2ec;color:#1d1a17;max-width:640px;margin:auto;padding:16px}h1{font-size:20px}li{list-style:none;padding:8px 10px;margin:6px 0;background:#fff;border-radius:8px;border-left:5px solid #ccc}.ok{border-color:#1a9b5c}.bad{border-color:#d33}.wait{border-color:#e9a400}button{background:#fb5b1f;color:#fff;border:0;border-radius:20px;padding:12px 22px;font-size:16px;font-weight:600;margin:8px 0}small{color:#7a7168;display:block}</style></head>
+<body><h1>BIN SAEED TEXTILE: install check</h1><button id="ib" hidden>⬇ Install App</button><ul id="r"></ul>
+<script>
+const R=document.getElementById('r'),add=(ok,t,d)=>{const l=document.createElement('li');l.className=ok===true?'ok':ok===false?'bad':'wait';l.innerHTML=(ok===true?'✅ ':ok===false?'❌ ':'⏳ ')+t+(d?'<small>'+d+'</small>':'');R.append(l);return l};
+let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.hidden=false;pl&&(pl.className='ok',pl.innerHTML='✅ Chrome says: this app CAN be installed. Tap the button above.')});
+ib.onclick=()=>dp&&dp.prompt();
+addEventListener('appinstalled',()=>add(true,'Installed successfully'));
+let pl;
+(async()=>{
+ add(isSecureContext,'HTTPS / secure context',location.origin);
+ add(matchMedia('(display-mode: standalone)').matches?true:'wait','Running as installed app?',matchMedia('(display-mode: standalone)').matches?'Yes, this is the app window':'No, this is a normal browser tab (expected before installing)');
+ try{const mr=await fetch('manifest.json',{cache:'no-store'});const ct=mr.headers.get('content-type');
+  add(mr.ok,'manifest.json loads (HTTP '+mr.status+')','Content-Type: '+ct);
+  const m=await mr.json();
+  add(!!m.name&&!!m.short_name,'Name and short name',m.name+' / '+m.short_name);
+  add(m.display==='standalone','display = standalone',m.display);
+  const sr=await fetch(m.start_url,{cache:'no-store'});add(sr.ok,'start_url loads (HTTP '+sr.status+')',m.start_url);
+  for(const ic of m.icons||[]){await new Promise(res=>{const i=new Image();i.onload=()=>{add(true,'Icon '+ic.src+' '+i.naturalWidth+'x'+i.naturalHeight+' ('+ic.purpose+')');res()};i.onerror=()=>{add(false,'Icon '+ic.src+' FAILED to load','File missing or wrong folder');res()};i.src=ic.src+'?'+Date.now()})}
+ }catch(e){add(false,'manifest.json problem',String(e)+' (If this says Failed to fetch or 401, the manifest is blocked or not uploaded.)')}
+ if('serviceWorker' in navigator){try{const r=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;const rg=await navigator.serviceWorker.getRegistration();add(!!(rg&&rg.active),'Service worker active','Scope: '+(rg&&rg.scope))}catch(e){add(false,'Service worker failed',String(e))}}else add(false,'Service workers not supported in this browser');
+ pl=add('wait','Waiting for Chrome install signal…','If this never turns green: the app may already be installed, you may be in Incognito, or a check above is red.');
+ setTimeout(()=>{if(!dp&&pl&&pl.className==='wait'){pl.innerHTML='⏳ No install signal from Chrome yet. Fix any red item above, or the app may already be installed (check chrome://apps or Windows Start menu).'}},5000);
+})();
+</script></body></html>
