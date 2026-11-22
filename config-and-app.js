@@ -75,5 +75,6 @@ if(_standalone){
   if(d&&Date.now()-d<7*864e5)showPill();else showCard()};
  addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e;ls.del('bst_installed');if(!card&&!pill)start()});
  addEventListener('appinstalled',done);
- setTimeout(start,900);
+ // Android/Windows: show the widget only when the browser has offered install, so the button always installs in one tap.
+ setTimeout(()=>{if(_ios||wrong)start()},900);
 }
