@@ -1,13 +1,17 @@
 <!doctype html><html lang="en"><head><title>BIN SAEED TEXTILE</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BIN SAEED"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
-<header><h1>BST</h1><input id="q" placeholder="Search fabrics, wears, lace…" type="search"><span id="bell"></span><button id="wb">♡</button><button id="cartb">🛒<b class="cb" id="cc">0</b></button><button id="me">👤</button></header>
-<main>
+<header><h1>BST</h1><input id="q" placeholder="Search fabrics, wears, lace…" type="search"><span id="bell"></span><button id="wb">♡</button></header><div id="sh" class="hist" hidden></div>
+<main id="home">
+<div class="car" id="car"></div>
 <div class="promo"><b>🚚 Free-delivery goal ₦<span id="fs"></span></b><span>New fabrics every week</span></div>
 <div class="flash" id="flash" hidden>⚡ Flash deals end in <b id="fd"></b></div>
 <div class="chips" id="chips"></div>
 <div class="row" style="margin:0 0 10px"><small id="cnt"></small><select id="sort" style="width:auto"><option value="new">Newest</option><option value="pop">Best selling</option><option value="rate">Top rated</option><option value="lo">Price: low to high</option><option value="hi">Price: high to low</option></select></div>
-<div class="grid" id="grid"></div><p id="empty" class="muted" hidden>No products found.</p>
+<div class="grid" id="grid"></div><div id="sent" style="height:2px"></div><p id="empty" class="muted" hidden>No products found.</p>
 <div id="rvw"></div>
 </main>
+<main id="alt" hidden></main>
+<nav class="tabs" id="bn"><button data-v="home" class="on">🏠<span>Home</span></button><button data-v="cat">☰<span>Categories</span></button><button data-v="deals">⚡<span>Deals</span></button><button data-v="cart">🛒<span>Cart</span><b class="cb" id="cc"></b></button><button data-v="me">👤<span>Me</span></button></nav>
+<button id="top" hidden>↑</button>
 <div id="app" hidden></div>
 <script src="config-and-app.js"></script>
 <script>
@@ -15,7 +19,7 @@ const FREE_SHIP=50000; // free-delivery goal shown in cart. Set to 0 to hide the
 let P=[],R={},cat='All',cart=JSON.parse(localStorage.getItem('bst_cart')||'{}'),user=null,
  wish=JSON.parse(localStorage.getItem('bst_wish')||'[]'),rv=JSON.parse(localStorage.getItem('bst_rv')||'[]');
 const $$=s=>document.querySelector(s),jset=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const save=()=>{jset('bst_cart',cart);$$('#cc').textContent=Object.values(cart).reduce((a,b)=>a+b.q,0)};
+const save=()=>{jset('bst_cart',cart);{const n=Object.values(cart).reduce((a,b)=>a+b.q,0);$$('#cc').textContent=n||''}};
 const disc=p=>+p.compare_price>+p.price?Math.round((1-p.price/p.compare_price)*100):0;
 const live=p=>p.deal_ends&&new Date(p.deal_ends)>new Date()&&disc(p)>0;
 const sold=n=>n>=1000?(n/1000).toFixed(1)+'K':n;
@@ -32,14 +36,14 @@ function draw(){
  let l=P.filter(p=>(cat==='All'||(cat==='⚡ Flash deals'?live(p):p.category===cat))&&(p.name+' '+(p.category||'')).toLowerCase().includes(q));
  const avg=p=>R[p.id]?R[p.id].s/R[p.id].n:0;
  l.sort({new:()=>0,pop:(a,b)=>b.sold-a.sold,rate:(a,b)=>avg(b)-avg(a),lo:(a,b)=>a.price-b.price,hi:(a,b)=>b.price-a.price}[s]);
- $$('#empty').hidden=!!l.length;$$('#cnt').textContent=l.length+' items';$$('#grid').innerHTML=l.map(card).join('');
+ window._l=l;window._n=12;$$('#empty').hidden=!!l.length;$$('#cnt').textContent=l.length+' items';renderGrid();
  const d=P.filter(live).map(p=>new Date(p.deal_ends)).sort((a,b)=>a-b)[0];$$('#flash').hidden=!d;window._d=d}
 function recent(){const l=rv.map(id=>P.find(p=>p.id===id)).filter(Boolean).slice(0,8);
  $$('#rvw').innerHTML=l.length?`<h3 style="margin:14px 0 8px">Recently viewed</h3><div class="chips">${l.map(p=>`<div class="p" style="min-width:110px" data-o="${p.id}"><div class="im"><img src="${esc(p.image_url||'icon.svg')}" alt=""></div><div><span class="pr">${naira(p.price)}</span></div></div>`).join('')}</div>`:''}
 setInterval(()=>{if(!window._d)return;let t=Math.max(0,(window._d-new Date())/1000|0);const h=t/3600|0,m=t%3600/60|0,s=t%60;$$('#fd').textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');if(!t)load()},1000);
 $$('#fs').textContent=FREE_SHIP.toLocaleString();if(!FREE_SHIP)document.querySelector('.promo b').hidden=true;
 function addCart(id){const p=P.find(x=>x.id===id);cart[id]=cart[id]||{id,name:p.name,price:p.price,vendor_id:p.vendor_id,q:0};if(cart[id].q<p.stock)cart[id].q++;save();toast('Added to cart')}
-function heart(id){wish=wish.includes(id)?wish.filter(x=>x!==id):[id,...wish];jset('bst_wish',wish);draw()}
+function heart(id){wish=wish.includes(id)?wish.filter(x=>x!==id):[id,...wish];jset('bst_wish',wish);refresh()}
 $$('#chips').onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;load()}};$$('#q').oninput=draw;$$('#sort').onchange=draw;
 function clicks(e){const d=e.target.closest('[data-w],[data-add],[data-o]');if(!d)return;const D=d.dataset;if(D.w)heart(D.w);else if(D.add)addCart(D.add);else if(D.o)openP(D.o)}
 $$('#grid').onclick=clicks;$$('#rvw').onclick=clicks;
@@ -56,11 +60,6 @@ async function openP(id){const p=P.find(x=>x.id===id);if(!p)return;rv=[id,...rv.
   else if(e.target.id==='rb'){user=await profile();if(!user)return toast('Log in to post a review');const{error}=await sb.from('reviews').upsert({product_id:id,user_id:user.id,user_name:user.name,rating:+m.querySelector('#rs').value,comment:m.querySelector('#rc').value},{onConflict:'product_id,user_id'});toast(error?error.message:'Thanks for your review!');if(!error){m.remove();load().then(()=>openP(id))}}
   else if(e.target.closest('[data-o]')){m.remove();openP(e.target.closest('[data-o]').dataset.o)}
   else if(e.target.dataset.w){heart(e.target.dataset.w);e.target.textContent=wish.includes(id)?'♥ Saved':'♡ Save'}else if(e.target.dataset.add)addCart(e.target.dataset.add)}}
-$$('#cartb').onclick=openCart;
-$$('#me').onclick=async()=>{user=await profile();if(!user){const m=modal('<div id=lg></div>');return loginForm(m.querySelector('#lg'),()=>location.reload())}
- const my=await sb.from('orders').select('*').eq('customer_id',user.id).order('created_at',{ascending:false});
- const S=['paid_pending','confirmed','shipped','delivered'],L=['Paid','Confirmed','Shipped','Delivered'];
- modal(`<h3>Hi ${esc(user.name||'there')}</h3>${(my.data||[]).map(o=>`<div class="note"><div class="row"><b>${naira(o.total)}</b><small>${new Date(o.created_at).toLocaleDateString()}</small></div><small>${o.items.map(i=>esc(i.name)+' ×'+i.q).join(', ')}</small><div class="tl">${L.map((l,i)=>`<span class="${i<=S.indexOf(o.status)?'on':''}">${l}</span>`).join('')}</div></div>`).join('')||'<p class=muted>No orders yet.</p>'}<button class="btn g" onclick="logout()">Log out</button>`);bell(user)};
 function openCart(){const items=Object.values(cart),total=items.reduce((a,b)=>a+b.price*b.q,0),left=Math.max(0,FREE_SHIP-total);
  const m=modal(`<h3>Your cart</h3>${FREE_SHIP&&items.length?`<div class="card"><small>${left?'Add '+naira(left)+' more to reach your free-delivery goal':'🎉 Free-delivery goal reached'}</small><div class="bar"><i style="width:${Math.min(100,total/FREE_SHIP*100)}%"></i></div></div>`:''}${items.map(i=>`<div class="row note"><span>${esc(i.name)}<br><small>${naira(i.price)}</small></span><span><button class="btn g s" data-d="${i.id}">−</button> ${i.q} <button class="btn g s" data-u="${i.id}">+</button></span></div>`).join('')||'<p class=muted>Cart is empty.</p>'}<div class="row"><b>Total ${naira(total)}</b><button class="btn" id="co" ${items.length?'':'disabled'}>Checkout</button></div>`);
  m.onclick=e=>{const d=e.target.dataset;if(e.target===m||e.target.className==='x')return m.remove();
@@ -68,11 +67,48 @@ function openCart(){const items=Object.values(cart),total=items.reduce((a,b)=>a+
 async function checkout(total){user=await profile();
  if(!user){const m=modal('<div id=lg></div>');return loginForm(m.querySelector('#lg'),()=>{m.remove();checkout(total)})}
  const{data:acc}=await sb.from('accounts').select('bank,acct_no,acct_name,vendor_id').in('vendor_id',[...new Set(Object.values(cart).map(i=>i.vendor_id))]);
- const m=modal(`<h3>Pay ${naira(total)}</h3><p class=muted>Transfer the exact amount to any one account below, then tap "I have paid".</p>${(acc||[]).map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')||'<p class=err>No payment account is available yet. Please try later.</p>'}<textarea id="ad" placeholder="Delivery address & phone" required></textarea><input id="rf" placeholder="Transfer reference / sender name"><button class="btn" id="pd" ${acc&&acc.length?'':'disabled'}>I have paid</button>`);
- m.querySelector('#pd').onclick=async()=>{const address=m.querySelector('#ad').value.trim();if(!address)return toast('Enter your delivery address');
+ const m=modal(`<h3>Pay ${naira(total)}</h3><p class=muted>Transfer the exact amount to any one account below, then tap "I have paid".</p>${(acc||[]).map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')||'<p class=err>No payment account is available yet. Please try later.</p>'}<textarea id="ad" placeholder="Delivery address & phone" required>${esc(localStorage.getItem('bst_addr')||'')}</textarea><input id="rf" placeholder="Transfer reference / sender name"><button class="btn" id="pd" ${acc&&acc.length?'':'disabled'}>I have paid</button>`);
+ m.querySelector('#pd').onclick=async()=>{const address=m.querySelector('#ad').value.trim();if(!address)return toast('Enter your delivery address');localStorage.setItem('bst_addr',address);
   const by={};Object.values(cart).forEach(i=>(by[i.vendor_id]=by[i.vendor_id]||[]).push(i));
   const rows=Object.entries(by).map(([v,it])=>({customer_id:user.id,customer_name:user.name,vendor_id:v,items:it,total:it.reduce((a,b)=>a+b.price*b.q,0),reference:m.querySelector('#rf').value,address,status:'paid_pending'}));
   const{error}=await sb.from('orders').insert(rows);if(error)return toast(error.message);
   cart={};save();m.remove();toast('Payment submitted. The seller has been notified.')}}
+
+const BANNERS=[['New season fabrics','Fresh lace, ankara and more'],['Flash deals ⚡','Grab them before the timer ends'],['Shop with confidence','Pay by transfer, track every order']];
+let bi=0,cur='home';
+function car(){$$('#car').innerHTML=BANNERS.map((b,i)=>`<div class="sl s${i} ${i===bi?'on':''}"><b>${b[0]}</b><span>${b[1]}</span></div>`).join('')+`<div class="dots">${BANNERS.map((_,i)=>`<i class="${i===bi?'on':''}"></i>`).join('')}</div>`}
+setInterval(()=>{bi=(bi+1)%BANNERS.length;car()},4000);car();
+function renderGrid(){$$('#grid').innerHTML=(window._l||[]).slice(0,window._n).map(card).join('')}
+new IntersectionObserver(e=>{if(e[0].isIntersecting&&window._l&&window._n<window._l.length){window._n+=12;renderGrid()}}).observe($$('#sent'));
+addEventListener('scroll',()=>{$$('#top').hidden=scrollY<700});$$('#top').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+// search history
+const hist=()=>JSON.parse(localStorage.getItem('bst_hist')||'[]');
+$$('#q').onfocus=()=>{const l=hist();if(!l.length)return;$$('#sh').hidden=false;$$('#sh').innerHTML='<small>Recent searches</small> '+l.map(x=>`<button data-h="${esc(x)}">${esc(x)}</button>`).join('')};
+$$('#q').onblur=()=>setTimeout(()=>$$('#sh').hidden=true,200);
+$$('#q').onkeydown=e=>{if(e.key==='Enter'&&e.target.value.trim()){jset('bst_hist',[e.target.value.trim(),...hist().filter(x=>x!==e.target.value.trim())].slice(0,6));e.target.blur()}};
+$$('#sh').onclick=e=>{if(e.target.dataset.h){$$('#q').value=e.target.dataset.h;view('home');draw()}};
+// bottom tabs
+function view(v){
+ if(v==='cart')return openCart();
+ cur=v;document.querySelectorAll('#bn button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+ $$('#home').hidden=v!=='home';$$('#alt').hidden=v==='home';
+ if(v==='cat')catPage(window._sel);if(v==='deals')dealsPage();if(v==='me')mePage();scrollTo(0,0)}
+$$('#bn').onclick=e=>{const b=e.target.closest('button');if(b)view(b.dataset.v)};
+function refresh(){cur==='home'?draw():cur==='cat'?catPage(window._sel):cur==='deals'?dealsPage():cur==='me'?0:0}
+function catPage(sel){const cats=[...new Set(P.map(p=>p.category).filter(Boolean))];sel=sel||cats[0];window._sel=sel;const a=$$('#alt');
+ a.innerHTML=`<div class="cl"><div class="side">${cats.map(c=>`<button class="${c===sel?'on':''}" data-cc="${esc(c)}">${esc(c)}</button>`).join('')||'<small>No categories yet</small>'}</div><div class="grid g2">${P.filter(p=>p.category===sel).map(card).join('')}</div></div>`;
+ a.onclick=e=>{const c=e.target.closest('[data-cc]');if(c)return catPage(c.dataset.cc);clicks(e)}}
+function dealsPage(){const a=$$('#alt'),avg=p=>R[p.id]?R[p.id].s/R[p.id].n:0;
+ const row=(t,l)=>l.length?`<h3 class="rt">${t}</h3><div class="hs">${l.map(card).join('')}</div>`:'';
+ a.innerHTML=row('⚡ Flash deals',P.filter(live))+row('🔥 Best sellers',[...P].sort((x,y)=>y.sold-x.sold).filter(p=>p.sold).slice(0,10))+row('⭐ Top rated',[...P].filter(p=>R[p.id]).sort((x,y)=>avg(y)-avg(x)).slice(0,10))+row('🆕 New arrivals',P.slice(0,10))||'<p class=muted>No deals yet.</p>';a.onclick=clicks}
+function ordersModal(o){const S=['paid_pending','confirmed','shipped','delivered'],L=['Paid','Confirmed','Shipped','Delivered'];
+ modal(`<h3>My orders</h3>${o.map(x=>`<div class="note"><div class="row"><b>${naira(x.total)}</b><small>${new Date(x.created_at).toLocaleDateString()}</small></div><small>${x.items.map(i=>esc(i.name)+' ×'+i.q).join(', ')}</small><div class="tl">${L.map((l,i)=>`<span class="${i<=S.indexOf(x.status)?'on':''}">${l}</span>`).join('')}</div></div>`).join('')||'<p class=muted>No orders yet.</p>'}`)}
+async function mePage(){user=await profile();const a=$$('#alt');
+ if(!user){a.innerHTML='<div id=lg2></div>';return loginForm($$('#lg2'),()=>location.reload())}
+ bell(user);const{data}=await sb.from('orders').select('*').eq('customer_id',user.id).order('created_at',{ascending:false});const o=data||[],n=s=>o.filter(x=>x.status===s).length||'';
+ a.innerHTML=`<div class="card prof"><img src="icon-192.png" alt=""><div><b>${esc(user.name||'Customer')}</b><br><small>BIN SAEED TEXTILE member</small></div></div><div class="card"><b>My orders</b><div class="st">${[['paid_pending','To confirm','💳'],['confirmed','Confirmed','✅'],['shipped','Shipped','🚚'],['delivered','Delivered','📦']].map(([k,l,i])=>`<div data-m="orders">${i}<b>${n(k)}</b><small>${l}</small></div>`).join('')}</div></div><div class="card menu"><button data-m="orders">📋 All orders and tracking</button><button data-m="wish">♡ Wishlist (${wish.length})</button><button data-m="addr">📍 Delivery address</button><button data-m="notif">🔔 Notifications</button><button data-m="out">⎋ Log out</button></div>`;
+ a.onclick=e=>{const m=e.target.closest('[data-m]');if(!m)return;const k=m.dataset.m;
+  if(k==='orders')ordersModal(o);else if(k==='wish')$$('#wb').click();else if(k==='notif')$$('#bell').click();else if(k==='out')logout();
+  else if(k==='addr'){const v=prompt('Delivery address and phone',localStorage.getItem('bst_addr')||'');if(v!==null){localStorage.setItem('bst_addr',v);toast('Address saved')}}}}
 save();load();(async()=>{user=await profile();if(user)bell(user)})();
 </script></body></html>
