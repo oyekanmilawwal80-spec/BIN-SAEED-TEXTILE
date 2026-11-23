@@ -22,17 +22,18 @@ async function gate(roles,render){
  const p=await profile(),app=$('#app');
  if(!p){loginForm(app,()=>gate(roles,render));return}
  if(!roles.includes(p.role)){app.innerHTML=`<div class="card auth"><h2>No access</h2><p>This account is a ${esc(p.role)} account and can't open this page.</p><button class=btn onclick="logout()">Log out</button></div>`;return}
- bell(p);render(p)}
-async function bell(p){
- const el=$('#bell');if(!el)return;
+ bell(p,roles.includes('admin')?'admin':'vendor');render(p)}
+async function bell(p,aud='customer'){
+ const el=$('#bell');if(!el||window._bellFor===p.id+aud)return;window._bellFor=p.id+aud;
  el.innerHTML='🔔<b id=nb hidden></b>';let list=[];
- const load=async()=>{const{data}=await sb.from('notifications').select('*').eq('user_id',p.id).order('created_at',{ascending:false}).limit(30);list=data||[];const u=list.filter(x=>!x.read).length;$('#nb').hidden=!u;$('#nb').textContent=u};
+ const load=async()=>{const{data}=await sb.from('notifications').select('*').eq('user_id',p.id).in('audience',[aud,'all']).order('created_at',{ascending:false}).limit(30);list=data||[];const u=list.filter(x=>!x.read).length;$('#nb').hidden=!u;$('#nb').textContent=u};
  await load();
  el.onclick=async()=>{
   if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();
   modal(`<h3>Notifications</h3>${list.map(n=>`<div class="note ${n.read?'':'new'}"><b>${esc(n.title)}</b><p>${esc(n.body)}</p><small>${new Date(n.created_at).toLocaleString()}</small></div>`).join('')||'<p class=muted>Nothing yet.</p>'}`);
-  await sb.from('notifications').update({read:true}).eq('user_id',p.id).eq('read',false);load()};
+  await sb.from('notifications').update({read:true}).eq('user_id',p.id).in('audience',[aud,'all']).eq('read',false);load()};
  sb.channel('n'+p.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+p.id},async e=>{
+  if(![aud,'all'].includes(e.new.audience))return;
   toast(e.new.title);load();
   if('Notification' in window&&Notification.permission==='granted'){const r=await navigator.serviceWorker.ready;r.showNotification(e.new.title,{body:e.new.body,icon:'icon-192.png',badge:'icon-192.png'})}}).subscribe()}
 /* Install App widget + splash */

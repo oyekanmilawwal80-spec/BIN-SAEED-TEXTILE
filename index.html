@@ -1,13 +1,13 @@
-<!doctype html><html lang="en"><head><title>BIN SAEED TEXTILE</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BIN SAEED"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
+<!doctype html><html lang="en"><head><title>BIN SAEED TEXTILE | Buy Quality Fabrics, Lace &amp; Textiles Online in Nigeria</title><meta name="description" content="Shop quality fabrics, lace and textiles from BIN SAEED TEXTILE. Browse deals, order online and get delivery in Nigeria. Install our free app for a faster shopping experience."><link rel="canonical" href="https://bin-saeed-textile.vercel.app/"><meta name="robots" content="index,follow"><meta property="og:type" content="website"><meta property="og:title" content="BIN SAEED TEXTILE"><meta property="og:description" content="Quality fabrics, lace and textiles online. Install our free app."><meta property="og:url" content="https://bin-saeed-textile.vercel.app/"><meta property="og:image" content="https://bin-saeed-textile.vercel.app/icon-512.png"><meta name="twitter:card" content="summary"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"BIN SAEED TEXTILE","url":"https://bin-saeed-textile.vercel.app/","logo":"https://bin-saeed-textile.vercel.app/icon-512.png"}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fb5b1f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BIN SAEED"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="stylesheet" href="app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script></head><body>
 <header><h1>BST</h1><input id="q" placeholder="Search fabrics, wears, lace…" type="search"><span id="bell"></span><button id="wb">♡</button></header><div id="sh" class="hist" hidden></div>
-<main id="home">
+<main id="home"><noscript><p>BIN SAEED TEXTILE sells quality fabrics, lace and textiles online in Nigeria. Please turn on JavaScript to shop.</p></noscript>
 <div class="car" id="car"></div>
-<div class="promo"><b>🚚 Free-delivery goal ₦<span id="fs"></span></b><span>New fabrics every week</span></div>
+<div class="promo"><b id="pm">🚚 Delivery cost is shown on every product</b><span>New fabrics every week</span></div>
 <div class="flash" id="flash" hidden>⚡ Flash deals end in <b id="fd"></b></div>
 <div class="chips" id="chips"></div>
 <div class="row" style="margin:0 0 10px"><small id="cnt"></small><select id="sort" style="width:auto"><option value="new">Newest</option><option value="pop">Best selling</option><option value="rate">Top rated</option><option value="lo">Price: low to high</option><option value="hi">Price: high to low</option></select></div>
 <div class="grid" id="grid"></div><div id="sent" style="height:2px"></div><p id="empty" class="muted" hidden>No products found.</p>
-<div id="rvw"></div>
+<div id="rvw"></div><p class="foot"><a href="#" id="info">Contact us &amp; policies</a></p>
 </main>
 <main id="alt" hidden></main>
 <nav class="tabs" id="bn"><button data-v="home" class="on">🏠<span>Home</span></button><button data-v="cat">☰<span>Categories</span></button><button data-v="deals">⚡<span>Deals</span></button><button data-v="cart">🛒<span>Cart</span><b class="cb" id="cc"></b></button><button data-v="me">👤<span>Me</span></button></nav>
@@ -15,7 +15,8 @@
 <div id="app" hidden></div>
 <script src="config-and-app.js"></script>
 <script>
-const FREE_SHIP=50000; // free-delivery goal shown in cart. Set to 0 to hide the bar.
+let VI={};
+function setPromo(){const m=Object.values(VI).map(v=>+v.free_delivery_min).filter(x=>x>0).sort((a,b)=>a-b)[0];$$('#pm').textContent=m?'🚚 Free delivery on orders over '+naira(m):'🚚 Delivery cost is shown on every product'}
 let P=[],R={},cat='All',cart=JSON.parse(localStorage.getItem('bst_cart')||'{}'),user=null,
  wish=JSON.parse(localStorage.getItem('bst_wish')||'[]'),rv=JSON.parse(localStorage.getItem('bst_rv')||'[]');
 const $$=s=>document.querySelector(s),jset=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
@@ -25,10 +26,10 @@ const live=p=>p.deal_ends&&new Date(p.deal_ends)>new Date()&&disc(p)>0;
 const sold=n=>n>=1000?(n/1000).toFixed(1)+'K':n;
 const rate=p=>R[p.id]?`★ ${(R[p.id].s/R[p.id].n).toFixed(1)} (${R[p.id].n})`:'';
 const price=p=>`<span class="pr">${naira(p.price)}</span>${disc(p)?` <s class="muted">${naira(p.compare_price)}</s>`:''}`;
-function card(p){return `<div class="p"><div class="im" data-o="${p.id}"><img loading="lazy" src="${esc(p.image_url||'icon.svg')}" alt="">${disc(p)?`<i class="bd">-${disc(p)}%</i>`:''}${live(p)?'<i class="bd fl">⚡</i>':''}<button class="hr" data-w="${p.id}">${wish.includes(p.id)?'♥':'♡'}</button></div><div><span data-o="${p.id}">${esc(p.name)}</span>${price(p)}<small>${rate(p)} ${p.sold?'· '+sold(p.sold)+' sold':''}${p.stock<6?' · only '+p.stock+' left':''}</small><button class="btn s" data-add="${p.id}">Add to cart</button></div></div>`}
+function card(p){return `<div class="p"><div class="im" data-o="${p.id}"><img loading="lazy" src="${esc(p.image_url||'icon.svg')}" alt="">${disc(p)?`<i class="bd">-${disc(p)}%</i>`:''}${live(p)?'<i class="bd fl">⚡</i>':''}<button class="hr" data-w="${p.id}">${wish.includes(p.id)?'♥':'♡'}</button></div><div><span data-o="${p.id}">${esc(p.name)}</span>${price(p)}<small>${rate(p)} ${p.sold?'· '+sold(p.sold)+' sold':''}${p.stock<6?' · only '+p.stock+' left':''}</small><small>🚚 ${+p.delivery_fee?naira(p.delivery_fee):'Free delivery'}</small><button class="btn s" data-add="${p.id}">Add to cart</button></div></div>`}
 async function load(){
- const[a,b]=await Promise.all([sb.from('products').select('*').eq('active',true).gt('stock',0).order('created_at',{ascending:false}),sb.from('reviews').select('product_id,rating')]);
- P=a.data||[];R={};(b.data||[]).forEach(r=>{(R[r.product_id]=R[r.product_id]||{s:0,n:0});R[r.product_id].s+=r.rating;R[r.product_id].n++});
+ const[a,b,c]=await Promise.all([sb.from('products').select('*').eq('active',true).gt('stock',0).order('created_at',{ascending:false}),sb.from('reviews').select('product_id,rating'),sb.from('vendor_info').select('*')]);
+ P=a.data||[];VI={};(c.data||[]).forEach(v=>VI[v.vendor_id]=v);setPromo();R={};(b.data||[]).forEach(r=>{(R[r.product_id]=R[r.product_id]||{s:0,n:0});R[r.product_id].s+=r.rating;R[r.product_id].n++});
  const cats=['All',...(P.some(live)?['⚡ Flash deals']:[]),...new Set(P.map(p=>p.category).filter(Boolean))];
  $$('#chips').innerHTML=cats.map(c=>`<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');draw();recent()}
 function draw(){
@@ -41,8 +42,8 @@ function draw(){
 function recent(){const l=rv.map(id=>P.find(p=>p.id===id)).filter(Boolean).slice(0,8);
  $$('#rvw').innerHTML=l.length?`<h3 style="margin:14px 0 8px">Recently viewed</h3><div class="chips">${l.map(p=>`<div class="p" style="min-width:110px" data-o="${p.id}"><div class="im"><img src="${esc(p.image_url||'icon.svg')}" alt=""></div><div><span class="pr">${naira(p.price)}</span></div></div>`).join('')}</div>`:''}
 setInterval(()=>{if(!window._d)return;let t=Math.max(0,(window._d-new Date())/1000|0);const h=t/3600|0,m=t%3600/60|0,s=t%60;$$('#fd').textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');if(!t)load()},1000);
-$$('#fs').textContent=FREE_SHIP.toLocaleString();if(!FREE_SHIP)document.querySelector('.promo b').hidden=true;
-function addCart(id){const p=P.find(x=>x.id===id);cart[id]=cart[id]||{id,name:p.name,price:p.price,vendor_id:p.vendor_id,q:0};if(cart[id].q<p.stock)cart[id].q++;save();toast('Added to cart')}
+
+function addCart(id){const p=P.find(x=>x.id===id);cart[id]=cart[id]||{id,name:p.name,price:p.price,vendor_id:p.vendor_id,delivery_fee:+p.delivery_fee||0,q:0};if(cart[id].q<p.stock)cart[id].q++;save();toast('Added to cart')}
 function heart(id){wish=wish.includes(id)?wish.filter(x=>x!==id):[id,...wish];jset('bst_wish',wish);refresh()}
 $$('#chips').onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;load()}};$$('#q').oninput=draw;$$('#sort').onchange=draw;
 function clicks(e){const d=e.target.closest('[data-w],[data-add],[data-o]');if(!d)return;const D=d.dataset;if(D.w)heart(D.w);else if(D.add)addCart(D.add);else if(D.o)openP(D.o)}
@@ -51,7 +52,7 @@ $$('#wb').onclick=()=>{const l=wish.map(id=>P.find(p=>p.id===id)).filter(Boolean
 async function openP(id){const p=P.find(x=>x.id===id);if(!p)return;rv=[id,...rv.filter(x=>x!==id)].slice(0,12);jset('bst_rv',rv);recent();
  const{data:rs}=await sb.from('reviews').select('*').eq('product_id',id).order('created_at',{ascending:false}).limit(15);
  const more=P.filter(x=>x.id!==id&&x.category===p.category).slice(0,4);
- const m=modal(`<img src="${esc(p.image_url||'icon.svg')}" style="width:100%;border-radius:12px;max-height:46vh;object-fit:cover" alt=""><h3>${esc(p.name)}</h3><div>${price(p)} ${disc(p)?`<i class="bd" style="position:static">-${disc(p)}%</i>`:''}</div><small>${rate(p)} ${p.sold?'· '+sold(p.sold)+' sold':''} · ${p.stock} in stock${live(p)?' · ⚡ flash deal':''}</small><p>${esc(p.description||'')}</p><div class="row"><button class="btn" data-add="${p.id}">Add to cart</button><button class="btn g" data-w="${p.id}">${wish.includes(id)?'♥ Saved':'♡ Save'}</button><button class="btn g" id="sh">Share</button></div>
+ const m=modal(`<img src="${esc(p.image_url||'icon.svg')}" style="width:100%;border-radius:12px;max-height:46vh;object-fit:cover" alt=""><h3>${esc(p.name)}</h3><div>${price(p)} ${disc(p)?`<i class="bd" style="position:static">-${disc(p)}%</i>`:''}</div><small>${rate(p)} ${p.sold?'· '+sold(p.sold)+' sold':''} · ${p.stock} in stock${live(p)?' · ⚡ flash deal':''}<br>🚚 Delivery: ${+p.delivery_fee?naira(p.delivery_fee):'Free'}</small><p>${esc(p.description||'')}</p><div class="row"><button class="btn" data-add="${p.id}">Add to cart</button><button class="btn g" data-w="${p.id}">${wish.includes(id)?'♥ Saved':'♡ Save'}</button><button class="btn g" id="sh">Share</button></div>
  <h4>Reviews</h4>${(rs||[]).map(r=>`<div class="note"><b>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</b> ${esc(r.user_name||'Customer')}<p>${esc(r.comment||'')}</p></div>`).join('')||'<p class=muted>No reviews yet.</p>'}
  <div class="card"><select id="rs">${[5,4,3,2,1].map(n=>`<option value="${n}">${'★'.repeat(n)}</option>`).join('')}</select><textarea id="rc" placeholder="Write a review"></textarea><button class="btn s" id="rb">Post review</button></div>
  ${more.length?`<h4>You may also like</h4><div class="grid">${more.map(card).join('')}</div>`:''}`);
@@ -60,17 +61,21 @@ async function openP(id){const p=P.find(x=>x.id===id);if(!p)return;rv=[id,...rv.
   else if(e.target.id==='rb'){user=await profile();if(!user)return toast('Log in to post a review');const{error}=await sb.from('reviews').upsert({product_id:id,user_id:user.id,user_name:user.name,rating:+m.querySelector('#rs').value,comment:m.querySelector('#rc').value},{onConflict:'product_id,user_id'});toast(error?error.message:'Thanks for your review!');if(!error){m.remove();load().then(()=>openP(id))}}
   else if(e.target.closest('[data-o]')){m.remove();openP(e.target.closest('[data-o]').dataset.o)}
   else if(e.target.dataset.w){heart(e.target.dataset.w);e.target.textContent=wish.includes(id)?'♥ Saved':'♡ Save'}else if(e.target.dataset.add)addCart(e.target.dataset.add)}}
-function openCart(){const items=Object.values(cart),total=items.reduce((a,b)=>a+b.price*b.q,0),left=Math.max(0,FREE_SHIP-total);
- const m=modal(`<h3>Your cart</h3>${FREE_SHIP&&items.length?`<div class="card"><small>${left?'Add '+naira(left)+' more to reach your free-delivery goal':'🎉 Free-delivery goal reached'}</small><div class="bar"><i style="width:${Math.min(100,total/FREE_SHIP*100)}%"></i></div></div>`:''}${items.map(i=>`<div class="row note"><span>${esc(i.name)}<br><small>${naira(i.price)}</small></span><span><button class="btn g s" data-d="${i.id}">−</button> ${i.q} <button class="btn g s" data-u="${i.id}">+</button></span></div>`).join('')||'<p class=muted>Cart is empty.</p>'}<div class="row"><b>Total ${naira(total)}</b><button class="btn" id="co" ${items.length?'':'disabled'}>Checkout</button></div>`);
+function calc(){const by={},per={};Object.values(cart).forEach(i=>(by[i.vendor_id]=by[i.vendor_id]||[]).push(i));
+ let sub=0,del=0;const tips=[];
+ for(const[v,it]of Object.entries(by)){const s=it.reduce((a,b)=>a+b.price*b.q,0),min=+((VI[v]||{}).free_delivery_min)||0,free=min>0&&s>=min,d=free?0:it.reduce((a,b)=>a+(+b.delivery_fee||0),0);
+  per[v]={s,d};sub+=s;del+=d;if(min>0&&!free)tips.push([min-s,min,(VI[v]||{}).shop_name||'this seller'])}
+ return{by,per,sub,del,tips,total:sub+del}}
+function openCart(){const items=Object.values(cart),c=calc();
+ const m=modal(`<h3>Your cart</h3>${c.tips.map(t=>`<div class="card"><small>Add ${naira(t[0])} more from ${esc(t[2])} for free delivery</small><div class="bar"><i style="width:${Math.min(100,(t[1]-t[0])/t[1]*100)}%"></i></div></div>`).join('')}${items.map(i=>`<div class="row note"><span>${esc(i.name)}<br><small>${naira(i.price)}${+i.delivery_fee?' · delivery '+naira(i.delivery_fee):' · free delivery'}</small></span><span><button class="btn g s" data-d="${i.id}">−</button> ${i.q} <button class="btn g s" data-u="${i.id}">+</button></span></div>`).join('')||'<p class=muted>Cart is empty.</p>'}${items.length?`<div class="row"><small>Items</small><small>${naira(c.sub)}</small></div><div class="row"><small>Delivery</small><small>${c.del?naira(c.del):'Free'}</small></div>`:''}<div class="row"><b>Total ${naira(c.total)}</b><button class="btn" id="co" ${items.length?'':'disabled'}>Checkout</button></div>`);
  m.onclick=e=>{const d=e.target.dataset;if(e.target===m||e.target.className==='x')return m.remove();
-  if(d.d){if(--cart[d.d].q<1)delete cart[d.d]}else if(d.u){cart[d.u].q++}else if(e.target.id==='co'){m.remove();return checkout(total)}else return;save();m.remove();openCart()}}
-async function checkout(total){user=await profile();
- if(!user){const m=modal('<div id=lg></div>');return loginForm(m.querySelector('#lg'),()=>{m.remove();checkout(total)})}
- const{data:acc}=await sb.from('accounts').select('bank,acct_no,acct_name,vendor_id').in('vendor_id',[...new Set(Object.values(cart).map(i=>i.vendor_id))]);
- const m=modal(`<h3>Pay ${naira(total)}</h3><p class=muted>Transfer the exact amount to any one account below, then tap "I have paid".</p>${(acc||[]).map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')||'<p class=err>No payment account is available yet. Please try later.</p>'}<textarea id="ad" placeholder="Delivery address & phone" required>${esc(localStorage.getItem('bst_addr')||'')}</textarea><input id="rf" placeholder="Transfer reference / sender name"><button class="btn" id="pd" ${acc&&acc.length?'':'disabled'}>I have paid</button>`);
+  if(d.d){if(--cart[d.d].q<1)delete cart[d.d]}else if(d.u){cart[d.u].q++}else if(e.target.id==='co'){m.remove();return checkout()}else return;save();m.remove();openCart()}}
+async function checkout(){user=await profile();
+ if(!user){const m=modal('<div id=lg></div>');return loginForm(m.querySelector('#lg'),()=>{m.remove();checkout()})}
+ const c=calc(),{data:acc}=await sb.from('accounts').select('bank,acct_no,acct_name,vendor_id').in('vendor_id',Object.keys(c.by));
+ const m=modal(`<h3>Pay ${naira(c.total)}</h3><small>Items ${naira(c.sub)} + Delivery ${c.del?naira(c.del):'Free'}</small><p class=muted>Transfer the exact amount to any one account below, then tap "I have paid".</p>${(acc||[]).map(a=>`<div class="acct"><small>${esc(a.bank)}</small><br><b>${esc(a.acct_no)}</b><br>${esc(a.acct_name)}</div>`).join('')||'<p class=err>No payment account is available yet. Please try later.</p>'}<textarea id="ad" placeholder="Delivery address & phone" required>${esc(localStorage.getItem('bst_addr')||'')}</textarea><input id="rf" placeholder="Transfer reference / sender name"><button class="btn" id="pd" ${acc&&acc.length?'':'disabled'}>I have paid</button>`);
  m.querySelector('#pd').onclick=async()=>{const address=m.querySelector('#ad').value.trim();if(!address)return toast('Enter your delivery address');localStorage.setItem('bst_addr',address);
-  const by={};Object.values(cart).forEach(i=>(by[i.vendor_id]=by[i.vendor_id]||[]).push(i));
-  const rows=Object.entries(by).map(([v,it])=>({customer_id:user.id,customer_name:user.name,vendor_id:v,items:it,total:it.reduce((a,b)=>a+b.price*b.q,0),reference:m.querySelector('#rf').value,address,status:'paid_pending'}));
+  const rows=Object.entries(c.by).map(([v,it])=>({customer_id:user.id,customer_name:user.name,vendor_id:v,items:it,total:c.per[v].s+c.per[v].d,delivery_fee:c.per[v].d,reference:m.querySelector('#rf').value,address,status:'paid_pending'}));
   const{error}=await sb.from('orders').insert(rows);if(error)return toast(error.message);
   cart={};save();m.remove();toast('Payment submitted. The seller has been notified.')}}
 
@@ -106,9 +111,12 @@ function ordersModal(o){const S=['paid_pending','confirmed','shipped','delivered
 async function mePage(){user=await profile();const a=$$('#alt');
  if(!user){a.innerHTML='<div id=lg2></div>';return loginForm($$('#lg2'),()=>location.reload())}
  bell(user);const{data}=await sb.from('orders').select('*').eq('customer_id',user.id).order('created_at',{ascending:false});const o=data||[],n=s=>o.filter(x=>x.status===s).length||'';
- a.innerHTML=`<div class="card prof"><img src="icon-192.png" alt=""><div><b>${esc(user.name||'Customer')}</b><br><small>BIN SAEED TEXTILE member</small></div></div><div class="card"><b>My orders</b><div class="st">${[['paid_pending','To confirm','💳'],['confirmed','Confirmed','✅'],['shipped','Shipped','🚚'],['delivered','Delivered','📦']].map(([k,l,i])=>`<div data-m="orders">${i}<b>${n(k)}</b><small>${l}</small></div>`).join('')}</div></div><div class="card menu"><button data-m="orders">📋 All orders and tracking</button><button data-m="wish">♡ Wishlist (${wish.length})</button><button data-m="addr">📍 Delivery address</button><button data-m="notif">🔔 Notifications</button><button data-m="out">⎋ Log out</button></div>`;
+ a.innerHTML=`<div class="card prof"><img src="icon-192.png" alt=""><div><b>${esc(user.name||'Customer')}</b><br><small>BIN SAEED TEXTILE member</small></div></div><div class="card"><b>My orders</b><div class="st">${[['paid_pending','To confirm','💳'],['confirmed','Confirmed','✅'],['shipped','Shipped','🚚'],['delivered','Delivered','📦']].map(([k,l,i])=>`<div data-m="orders">${i}<b>${n(k)}</b><small>${l}</small></div>`).join('')}</div></div><div class="card menu"><button data-m="orders">📋 All orders and tracking</button><button data-m="wish">♡ Wishlist (${wish.length})</button><button data-m="addr">📍 Delivery address</button><button data-m="notif">🔔 Notifications</button><button data-m="info">ℹ️ Contact us &amp; policies</button><button data-m="out">⎋ Log out</button></div>`;
  a.onclick=e=>{const m=e.target.closest('[data-m]');if(!m)return;const k=m.dataset.m;
-  if(k==='orders')ordersModal(o);else if(k==='wish')$$('#wb').click();else if(k==='notif')$$('#bell').click();else if(k==='out')logout();
+  if(k==='orders')ordersModal(o);else if(k==='wish')$$('#wb').click();else if(k==='notif')$$('#bell').click();else if(k==='info')infoModal();else if(k==='out')logout();
   else if(k==='addr'){const v=prompt('Delivery address and phone',localStorage.getItem('bst_addr')||'');if(v!==null){localStorage.setItem('bst_addr',v);toast('Address saved')}}}}
+async function infoModal(){const{data}=await sb.from('vendor_info').select('*');
+ modal(`<h3>Contact us &amp; policies</h3>${(data||[]).map(v=>`<div class="card"><b>${esc(v.shop_name||'Our shop')}</b>${v.phone?`<p>📞 <a href="tel:${esc(v.phone)}">${esc(v.phone)}</a></p>`:''}${v.whatsapp?`<p>💬 <a href="https://wa.me/${esc(String(v.whatsapp).replace(/\D/g,''))}" target="_blank" rel="noopener">WhatsApp us</a></p>`:''}${v.email?`<p>✉️ <a href="mailto:${esc(v.email)}">${esc(v.email)}</a></p>`:''}${v.address?`<p>📍 ${esc(v.address)}</p>`:''}${v.policies?`<h4>Policies</h4><p style="white-space:pre-wrap">${esc(v.policies)}</p>`:''}</div>`).join('')||'<p class=muted>Contact details are coming soon.</p>'}`)}
+$$('#info').onclick=e=>{e.preventDefault();infoModal()};
 save();load();(async()=>{user=await profile();if(user)bell(user)})();
 </script></body></html>

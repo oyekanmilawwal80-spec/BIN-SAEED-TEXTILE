@@ -45,3 +45,4 @@ input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);borde
 .prof{display:flex;gap:12px;align-items:center}.prof img{width:56px;height:56px;border-radius:50%}.st{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin-top:10px}.st div{display:flex;flex-direction:column;font-size:22px;cursor:pointer}.st b{font-size:14px;min-height:20px;color:var(--o)}
 .menu button{display:block;width:100%;text-align:left;background:none;border:0;padding:14px 4px;border-bottom:1px solid var(--line);font-size:15px}
 #top{position:fixed;right:14px;bottom:130px;z-index:8;width:42px;height:42px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:20px;opacity:.85}
+.foot{text-align:center;margin:18px 0 6px;font-size:13px}.foot a{color:var(--mut)}.tag.approved{background:#d3f2e1}.tag.rejected{background:#fbd5d5}
